@@ -1,21 +1,5 @@
 package com.cabsoft.rainbowbr.activity;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.json.JSONObject;
-
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
@@ -60,17 +44,39 @@ import com.cabsoft.rainbowbr.schememgr.CabWebManager;
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.gun0912.tedpermission.PermissionListener;
 import com.gun0912.tedpermission.TedPermission;
-//import com.kwic.saib.pub.KW_CIPHER_TYPE;
-//import com.kwic.saib.pub.KeySecurity;
-//import com.kwic.saib.pub.SmartAIB;
+import com.infotech.IFTCrypto.InfoTecCore;
+import com.infotech.IFTCrypto.InfoTecCoreCompelete;
+import com.infotech.IFTCrypto.iftCoreEnV2;
+import com.kwic.security.main.Crypto;
 import com.lenddo.data.AndroidData;
 import com.lenddo.data.listeners.OnDataSendingCompleteCallback;
 import com.lenddo.data.models.ClientOptions;
 import com.linkprice.app_interlock.Lpfront;
 import com.nshc.nfilter.NFilter;
+import com.nshc.nfilter.util.NFilterUtils;
 import com.pacesystem.lib.RecognitionResult;
 import com.pacesystem.paceidcardrecog.PreviewActivity;
 import com.welcomeloan.mobile.R;
+
+import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+//import com.kwic.saib.pub.KW_CIPHER_TYPE;
+//import com.kwic.saib.pub.KeySecurity;
+//import com.kwic.saib.pub.SmartAIB;
 
 /**
  * @author yspark
@@ -973,7 +979,7 @@ public class CabWebActivity extends Activity {
                         Log.i("TEST", "aesenc:" + aesenc);
 
                         HashMap<String, Object> encMap = new HashMap<String, Object>();
-                        encMap.put("encType", KW_CIPHER_TYPE.KW_CIPHER_SEED128);
+//                        encMap.put("encType", KW_CIPHER_TYPE.KW_CIPHER_SEED128);
                         encMap.put("encKey", "welcomeloan_kwic");
                         // mapRoot.put("JUMIN", encMap);
                         mapRoot.put("NUMBER", encMap);
@@ -1043,13 +1049,13 @@ public class CabWebActivity extends Activity {
 
                             @Override
                             public void run() {
-                                SmartAIB smartAIB = new SmartAIB(CabWebActivity.this, handleScrapBank);// .AIB_Execute(json.toString());
-                                smartAIB.setAIBLog(true);
-                                smartAIB.setCipherInfoDict_for_input(mapRoot);
-                                /** nFilter 키보드보안으로 인증서비밀번호를 암호화할 경우 */
-                                smartAIB.setKeySecurity(KeySecurity.KEY_SECURITY_NFILTER_STANDALONE, new String[]{nfilterPublicKey, nfilterCoworkKey});
-
-                                smartAIB.AIB_Execute(json.toString());
+//                                SmartAIB smartAIB = new SmartAIB(CabWebActivity.this, handleScrapBank);// .AIB_Execute(json.toString());
+//                                smartAIB.setAIBLog(true);
+//                                smartAIB.setCipherInfoDict_for_input(mapRoot);
+//                                /** nFilter 키보드보안으로 인증서비밀번호를 암호화할 경우 */
+//                                smartAIB.setKeySecurity(KeySecurity.KEY_SECURITY_NFILTER_STANDALONE, new String[]{nfilterPublicKey, nfilterCoworkKey});
+//
+//                                smartAIB.AIB_Execute(json.toString());
                             }
 
                         }, 1000);
@@ -1074,7 +1080,7 @@ public class CabWebActivity extends Activity {
                         Log.i("TEST", "aesenc:" + aesenc);
 
                         HashMap<String, Object> encMap = new HashMap<String, Object>();
-                        encMap.put("encType", KW_CIPHER_TYPE.KW_CIPHER_SEED128);
+//                        encMap.put("encType", KW_CIPHER_TYPE.KW_CIPHER_SEED128);
                         encMap.put("encKey", "welcomeloan_kwic");
                         // mapRoot.put("JUMIN", encMap);
                         mapRoot.put("NUMBER", encMap);
@@ -1147,13 +1153,13 @@ public class CabWebActivity extends Activity {
 
                             @Override
                             public void run() {
-                                SmartAIB smartAIB = new SmartAIB(CabWebActivity.this, handleScrapBank2);// .AIB_Execute(json.toString());
-                                smartAIB.setAIBLog(true);
-                                smartAIB.setCipherInfoDict_for_input(mapRoot);
-                                /** nFilter 키보드보안으로 인증서비밀번호를 암호화할 경우 */
-                                smartAIB.setKeySecurity(KeySecurity.KEY_SECURITY_NFILTER_STANDALONE, new String[]{nfilterPublicKey, nfilterCoworkKey});
-
-                                smartAIB.AIB_Execute(json.toString());
+//                                SmartAIB smartAIB = new SmartAIB(CabWebActivity.this, handleScrapBank2);// .AIB_Execute(json.toString());
+//                                smartAIB.setAIBLog(true);
+//                                smartAIB.setCipherInfoDict_for_input(mapRoot);
+//                                /** nFilter 키보드보안으로 인증서비밀번호를 암호화할 경우 */
+//                                smartAIB.setKeySecurity(KeySecurity.KEY_SECURITY_NFILTER_STANDALONE, new String[]{nfilterPublicKey, nfilterCoworkKey});
+//
+//                                smartAIB.AIB_Execute(json.toString());
                             }
 
                         }, 1000);
@@ -1171,24 +1177,58 @@ public class CabWebActivity extends Activity {
                         final HashMap<String, HashMap<String, Object>> mapRoot = new HashMap<String, HashMap<String, Object>>();
                         CabNFilterComponent nfilter = (CabNFilterComponent) mWebManager.getComponents("nfilter");
 
+                        String decUrl = URLDecoder.decode(url, "UTF-8");
+                        Log.i("scrap_nhis", "decUrl:" + decUrl);
+                        String aesenc = nfilter.aesencDataForId("certificatePass");
+                        Log.i("scrap_nhis", "aesenc:" + aesenc);
+
+                        //infotech
+                        final JSONObject obj = new JSONObject();
+                        obj.put("appCd", "com.welcomeloan.mobile");
+                        obj.put("orgCd", "nhic");
+                        //건강보험 조회할때는 은행코드를 따로 넘기지 않았는데 넘겨야 될듯
+                        obj.put("bankCd", "004");
+                        obj.put("svcCd", "B0001,B0002");
+
+                        String decJumin = Crypto.decrypt(getPaceUrlParam(decUrl, "jumin"), "welcomeloan_kwic", "utf-8");
+                        Log.i("scrap_nhis","decJumin:"+decJumin);
+                        InfoTecCore iftEncPw = new InfoTecCore(null, null);
+
+                        obj.put("bizEncNo", iftEncPw.iftEncPrarm(decJumin));
+                        obj.put("fromDate", getPaceUrlParam(decUrl, "startdate"));
+                        obj.put("toDate", getPaceUrlParam(decUrl, "enddate"));
+                        obj.put("signCert", Base64.encodeToString(getPaceUrlParam(decUrl, "certnm").getBytes(), Base64.DEFAULT));
+                        //obj.put("signPri", "13FCAE3400^ffmBA3Dk/5VERFwg");
+                        obj.put("signPri", Base64.encodeToString(getPaceUrlParam(decUrl, "certnm").getBytes(), Base64.DEFAULT));
+                        //obj.put("signPw", aesenc);
+
                         final String nfilterPublicKey = nfilter.getPublishKey();
                         final String nfilterCoworkKey = NFilter.COWORKER_CODE;
 
-                        String aesenc = nfilter.aesencDataForId("certificatePass");
-                        Log.i("TEST", "aesenc:" + aesenc);
+                        String encPwd = getPaceUrlParam(decUrl, "passwd");
+                        byte[] decPwd = NFilterUtils.getInstance().nSaferDecrypt(encPwd);
+                        String decPwdStr = new String(decPwd);
+                        Log.i("scrap_nhis", "decPwdStr :::" + decPwdStr);
+                        obj.put("signEncPw", iftEncPw.iftEncPrarm(decPwdStr));
+
+                        Log.i("scrap_nhis", "infotech obj :::" + obj.toString());
+
+
+
+
+
                         String encJumin = getPaceUrlParam(url, "jumin");
 
                         HashMap<String, Object> encMap = new HashMap<String, Object>();
-                        encMap.put("encType", KW_CIPHER_TYPE.KW_CIPHER_SEED128);
+//                        encMap.put("encType", KW_CIPHER_TYPE.KW_CIPHER_SEED128);
                         encMap.put("encKey", "welcomeloan_kwic");
                         mapRoot.put("JUMIN", encMap);
 
-                        Log.i("TEST", "nfilterPublicKey!!!!:" + nfilter.getPublishKey());
-                        Log.i("TEST", "mStrnFilterKey!!!!:" + nfilterPublicKey);
-                        Log.i("TEST", "nfilterCoworkKey!!!!:" + NFilter.COWORKER_CODE);
-                        String decUrl = URLDecoder.decode(url, "UTF-8");
-                        Log.i("TEST", "decUrl:" + decUrl);
-                        String encPwd = getPaceUrlParam(decUrl, "passwd");
+                        Log.i("scrap_nhis", "nfilterPublicKey!!!!:" + nfilter.getPublishKey());
+                        Log.i("scrap_nhis", "mStrnFilterKey!!!!:" + nfilterPublicKey);
+                        Log.i("scrap_nhis", "nfilterCoworkKey!!!!:" + NFilter.COWORKER_CODE);
+
+//                        String encPwd = getPaceUrlParam(decUrl, "passwd");
 
                         // NFilter nFilter = new NFilter(CabWebActivity.this);
                         // nFilter.setPublicKey("");
@@ -1201,16 +1241,12 @@ public class CabWebActivity extends Activity {
 						 * Log.i("TEST","encURL:"+getPaceUrlParam(decUrl,
 						 * "encUrl"));
 						 */
-                        final String nFilterPubKey = getPaceUrlParam(decUrl, "publickey");
-                        final String nFilterCoworkKey = getPaceUrlParam(decUrl, "coworkkey");
-                        // Log.i("TEST","nFilter public key:"+ nFilterPubKey);
-                        // Log.i("TEST","nFilter cowork key:"+
-                        // nFilterCoworkKey);
+
 
                         String passwd = getPaceUrlParam(decUrl, "passwd");
 
-                        Log.i("TEST", "decurl: " + decUrl);
-                        Log.i("TEST", "jumin:" + getPaceUrlParam(decUrl, "jumin"));
+                        Log.i("scrap_nhis", "decurl: " + decUrl);
+                        Log.i("scrap_nhis", "jumin:" + getPaceUrlParam(decUrl, "jumin"));
                         json.put("ORG", "62"); /* 서비스분류코드 */
                         json.put("FCODE", getPaceUrlParam(decUrl, "code")); /* 서비스분류명칭 */
                         json.put("CERTKEY", "13FCAE3400^ffmBA3Dk/5VERFwg"); /*
@@ -1236,26 +1272,60 @@ public class CabWebActivity extends Activity {
                         // "encUrl")); /*구간 암호화 전송 URL*/
                         json.put("INXECURE", "Y");
 
-                        Log.i("TEST", json.toString());
+                        Log.i("scrap_nhis", json.toString());
 
                         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-                        handleScrap.postDelayed(new Runnable() {
-
+                        new Thread(new Runnable() {
                             @Override
                             public void run() {
-                                SmartAIB smartAIB = new SmartAIB(CabWebActivity.this, handleScrap);// .AIB_Execute(json.toString());
-                                smartAIB.setAIBLog(true);
-                                smartAIB.setCipherInfoDict_for_input(mapRoot);
-                                /** nFilter 키보드보안으로 인증서비밀번호를 암호화할 경우 */
-                                smartAIB.setKeySecurity(KeySecurity.KEY_SECURITY_NFILTER_STANDALONE, new String[]{nfilterPublicKey, nfilterCoworkKey});
+                                iftCoreEnV2 ss1 = new iftCoreEnV2(CabWebActivity.this, new InfoTecCoreCompelete() {
+                                    @Override
+                                    public void onRequestComplete(boolean b, String s) {
 
-                                smartAIB.AIB_Execute(json.toString());
+                                    }
+
+                                    @Override
+                                    public void onRequestProgress(int i, String progressMsg) {
+                                        Log.i("scrap_nhis", "progress Msg :" + progressMsg);
+                                    }
+                                });
+                                Log.i("scrap_nhis", "infotect startEngine");
+                                String progressMsg = ss1.startEngine(obj.toString());
+                                Log.i("scrap_nhis", "infotect endEngine");
+                                Log.i("scrap_nhis", "progress Msg :" + progressMsg);
                             }
+                        }).start();
 
-                        }, 1000);
+//                        handleScrap.postDelayed(new Runnable() {
+//
+//                            @Override
+//                            public void run() {
+////                                SmartAIB smartAIB = new SmartAIB(CabWebActivity.this, handleScrap);// .AIB_Execute(json.toString());
+////                                smartAIB.setAIBLog(true);
+////                                smartAIB.setCipherInfoDict_for_input(mapRoot);
+////                                /** nFilter 키보드보안으로 인증서비밀번호를 암호화할 경우 */
+////                                smartAIB.setKeySecurity(KeySecurity.KEY_SECURITY_NFILTER_STANDALONE, new String[]{nfilterPublicKey, nfilterCoworkKey});
+////
+////                                smartAIB.AIB_Execute(json.toString());
+//                                iftCoreEnV2 ss1 = new iftCoreEnV2(CabWebActivity.this, new InfoTecCoreCompelete() {
+//                                    @Override
+//                                    public void onRequestComplete(boolean b, String s) {
+//
+//                                    }
+//
+//                                    @Override
+//                                    public void onRequestProgress(int i, String progressMsg) {
+//                                        Log.i("progressMsg", "progress Msg :" + progressMsg);
+//                                    }
+//                                });
+//                                ss1.startEngine(obj.toString());
+//                            }
+//
+//                        }, 1000);
 
                     } catch (Exception e) {
+                        Log.e("scrap_nhis", "nhis scrap exception ::: " + e.getMessage());
                         e.printStackTrace();
 
                         mMainWebView.loadUrl("javascript:scrapCallback('FAIL', '처리중 오류가 발생했습니다.')");
@@ -1269,7 +1339,7 @@ public class CabWebActivity extends Activity {
                         final HashMap<String, HashMap<String, Object>> mapRoot = new HashMap<String, HashMap<String, Object>>();
 
                         HashMap<String, Object> encMap = new HashMap<String, Object>();
-                        encMap.put("encType", KW_CIPHER_TYPE.KW_CIPHER_SEED128);
+//                        encMap.put("encType", KW_CIPHER_TYPE.KW_CIPHER_SEED128);
                         encMap.put("encKey", "welcomeloan_kwic");
                         mapRoot.put("JUMIN", encMap);
                         /*
@@ -1333,13 +1403,13 @@ public class CabWebActivity extends Activity {
                             public void run() {
                                 // new SmartAIB(CabWebActivity.this,
                                 // handleScrap).AIB_Execute(strJson);
-                                SmartAIB smartAIB = new SmartAIB(CabWebActivity.this, handleScrap);// .AIB_Execute(json.toString());
-                                smartAIB.setAIBLog(true);
-                                smartAIB.setCipherInfoDict_for_input(mapRoot);
-                                /** nFilter 키보드보안으로 인증서비밀번호를 암호화할 경우 */
-                                smartAIB.setKeySecurity(KeySecurity.KEY_SECURITY_NFILTER_STANDALONE, new String[]{nfilterPublicKey, nfilterCoworkKey});
-
-                                smartAIB.AIB_Execute(json.toString());
+//                                SmartAIB smartAIB = new SmartAIB(CabWebActivity.this, handleScrap);// .AIB_Execute(json.toString());
+//                                smartAIB.setAIBLog(true);
+//                                smartAIB.setCipherInfoDict_for_input(mapRoot);
+//                                /** nFilter 키보드보안으로 인증서비밀번호를 암호화할 경우 */
+//                                smartAIB.setKeySecurity(KeySecurity.KEY_SECURITY_NFILTER_STANDALONE, new String[]{nfilterPublicKey, nfilterCoworkKey});
+//
+//                                smartAIB.AIB_Execute(json.toString());
 
                             }
 
