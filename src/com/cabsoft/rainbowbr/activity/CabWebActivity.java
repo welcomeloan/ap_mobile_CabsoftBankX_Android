@@ -44,7 +44,6 @@ import com.cabsoft.rainbowbr.schememgr.CabWebManager;
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.gun0912.tedpermission.PermissionListener;
 import com.gun0912.tedpermission.TedPermission;
-import com.infotech.IFTCrypto.InfoTecCore;
 import com.infotech.IFTCrypto.InfoTecCoreCompelete;
 import com.infotech.IFTCrypto.iftCoreEnV2;
 import com.kwic.security.main.Crypto;
@@ -53,7 +52,6 @@ import com.lenddo.data.listeners.OnDataSendingCompleteCallback;
 import com.lenddo.data.models.ClientOptions;
 import com.linkprice.app_interlock.Lpfront;
 import com.nshc.nfilter.NFilter;
-import com.nshc.nfilter.util.NFilterUtils;
 import com.pacesystem.lib.RecognitionResult;
 import com.pacesystem.paceidcardrecog.PreviewActivity;
 import com.welcomeloan.mobile.R;
@@ -110,6 +108,122 @@ public class CabWebActivity extends Activity {
 
     //adid
     final Adid adid  = new Adid();
+
+    //infoTech 은행 스크래핑을 위한 enum
+    enum BankCode {
+        BANK_KDB        {
+            public String getCode() {return "002";}
+            public String getName() {return "산업은행";}
+        },
+        BANK_IBK        {
+            public String getCode() {return "003";}
+            public String getName() {return "기업은행";}
+        },
+        BANK_KB         {
+            public String getCode() {return "004";}
+            public String getName() {return "국민은행";}
+        },
+        BANK_SUHYUP     {
+            public String getCode() {return "007";}
+            public String getName() {return "수협은행";}
+        },
+        BANK_NH         {
+            public String getCode() {return "011";}
+            public String getName() {return "농협은행";}
+        },
+        BANK_WOORI      {
+            public String getCode() {return "020";}
+            public String getName() {return "우리은행";}
+        },
+        BANK_SC         {
+            public String getCode() {return "023";}
+            public String getName() {return "SC은행";}
+        },
+        BANK_CITY       {
+            public String getCode() {return "027";}
+            public String getName() {return "씨티은행";}
+        },
+        BANK_DGB        {
+            public String getCode() {return "031";}
+            public String getName() {return "대구은행";}
+        },
+        BANK_BUSAN      {
+            public String getCode() {return "032";}
+            public String getName() {return "부산은행";}
+        },
+        BANK_KJ         {
+            public String getCode() {return "034";}
+            public String getName() {return "광주은행";}
+        },
+        BANK_JEJU      {
+            public String getCode() {return "035";}
+            public String getName() {return "제은행";}
+        },
+        BANK_JB         {
+            public String getCode() {return "037";}
+            public String getName() {return "전북은행";}
+        },
+        BANK_KN         {
+            public String getCode() {return "039";}
+            public String getName() {return "경남은행";}
+        },
+        BANK_MG         {
+            public String getCode() {return "045";}
+            public String getName() {return "새마을금고";}
+        },
+        BANK_SINHYUP    {
+            public String getCode() {return "048";}
+            public String getName() {return "신협";}
+        },
+        BANK_EPOST      {
+            public String getCode() {return "079";}
+            public String getName() {return "우체국";}
+        },
+        BANK_KEB        {
+            public String getCode() {return "081";}
+            public String getName() {return "하나은행";}
+        },
+        BANK_SHINHAN    {
+            public String getCode() {return "088";}
+            public String getName() {return "신한은행";}
+        },
+        BANK_KBANK      {
+            public String getCode() {return "089";}
+            public String getName() {return "K뱅크";}
+        },
+        BANK_KAKAO      {
+            public String getCode() {return "090";}
+            public String getName() {return "카카오뱅크";}
+        },
+        BANK_DAISHIN    {
+            public String getCode() {return "267";}
+            public String getName() {return "대신증권";}
+        },
+        BANK_NHQV       {
+            public String getCode() {return "289";}
+            public String getName() {return "NH투자증권";}
+        },
+        BANK_SMPOP      {
+            public String getCode() {return "240";}
+            public String getName() {return "삼성증권";}
+        },
+        BANK_MERITZ     {
+            public String getCode() {return "287";}
+            public String getName() {return "메리츠증권";}
+        },
+        BANK_SHINVEST   {
+            public String getCode() {return "278";}
+            public String getName() {return "신한투자증권";}
+        };
+
+        public String getCode() {
+            return this.getCode();
+        }
+
+        public String getName() {
+            return this.getName();
+        }
+    }
 
     //렌도 백그라운드 실행
     private class MyLenddoTask extends AsyncTask<Void, Integer, Void> {
@@ -204,6 +318,56 @@ public class CabWebActivity extends Activity {
         public String getAdid() {
             return this.adid;
         }
+    }
+
+    InfoTecCoreCompelete infoTecListener =  new InfoTecCoreCompelete() {
+        @Override
+        public void onRequestComplete(boolean b, String s) {
+
+        }
+
+        @Override
+        public void onRequestProgress(int i, String progressMsg) {
+
+        }
+    };
+
+    private Runnable createInfoTecThread(final String strScrapResult, final String strScrapType) {
+        Runnable run = new Runnable() {
+            @Override
+            public void run() {
+                // TODO: 2018. 1. 30.
+                String result = "";
+                String data = "";
+                String errDoc = "";
+
+                try {
+                    getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+                    JSONObject obj = new JSONObject(strScrapResult);
+                    result = obj.getString("errYn");
+
+                    if ("N".equals(result)) {
+                        data = obj.toString();
+                    } else {
+                        data = obj.getString("errMsg");
+                        errDoc = obj.getString("errMsg");
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+
+                    result = "EXCEPTION";
+                    data = e.getMessage();
+                }
+
+                // longTextLogger("CabWebActivity", data);
+
+                //mMainWebView.loadUrl("javascript:scrapCallback('" + result + "', '" + data + "', '" + errDoc + "')");
+            }
+        };
+
+        return run;
     }
 
     private Handler handleScrap = new Handler() {
@@ -1174,158 +1338,51 @@ public class CabWebActivity extends Activity {
                     final JSONObject json = new JSONObject();
 
                     try {
-                        final HashMap<String, HashMap<String, Object>> mapRoot = new HashMap<String, HashMap<String, Object>>();
-                        CabNFilterComponent nfilter = (CabNFilterComponent) mWebManager.getComponents("nfilter");
-
-                        String decUrl = URLDecoder.decode(url, "UTF-8");
+                        final String decUrl = URLDecoder.decode(url, "UTF-8");
                         Log.i("scrap_nhis", "decUrl:" + decUrl);
-                        String aesenc = nfilter.aesencDataForId("certificatePass");
-                        Log.i("scrap_nhis", "aesenc:" + aesenc);
-
-                        //infotech
-                        final JSONObject obj = new JSONObject();
-                        obj.put("appCd", "com.welcomeloan.mobile");
-                        obj.put("orgCd", "nhic");
-                        //건강보험 조회할때는 은행코드를 따로 넘기지 않았는데 넘겨야 될듯
-                        obj.put("bankCd", "004");
-                        obj.put("svcCd", "B0001,B0002");
-
-                        String decJumin = Crypto.decrypt(getPaceUrlParam(decUrl, "jumin"), "welcomeloan_kwic", "utf-8");
-                        Log.i("scrap_nhis","decJumin:"+decJumin);
-                        InfoTecCore iftEncPw = new InfoTecCore(null, null);
-
-                        obj.put("bizEncNo", iftEncPw.iftEncPrarm(decJumin));
-                        obj.put("fromDate", getPaceUrlParam(decUrl, "startdate"));
-                        obj.put("toDate", getPaceUrlParam(decUrl, "enddate"));
-                        obj.put("signCert", Base64.encodeToString(getPaceUrlParam(decUrl, "certnm").getBytes(), Base64.DEFAULT));
-                        //obj.put("signPri", "13FCAE3400^ffmBA3Dk/5VERFwg");
-                        obj.put("signPri", Base64.encodeToString(getPaceUrlParam(decUrl, "certnm").getBytes(), Base64.DEFAULT));
-                        //obj.put("signPw", aesenc);
-
-                        final String nfilterPublicKey = nfilter.getPublishKey();
-                        final String nfilterCoworkKey = NFilter.COWORKER_CODE;
-
-                        String encPwd = getPaceUrlParam(decUrl, "passwd");
-                        byte[] decPwd = NFilterUtils.getInstance().nSaferDecrypt(encPwd);
-                        String decPwdStr = new String(decPwd);
-                        Log.i("scrap_nhis", "decPwdStr :::" + decPwdStr);
-                        obj.put("signEncPw", iftEncPw.iftEncPrarm(decPwdStr));
-
-                        Log.i("scrap_nhis", "infotech obj :::" + obj.toString());
-
-
-
-
-
-                        String encJumin = getPaceUrlParam(url, "jumin");
-
-                        HashMap<String, Object> encMap = new HashMap<String, Object>();
-//                        encMap.put("encType", KW_CIPHER_TYPE.KW_CIPHER_SEED128);
-                        encMap.put("encKey", "welcomeloan_kwic");
-                        mapRoot.put("JUMIN", encMap);
-
-                        Log.i("scrap_nhis", "nfilterPublicKey!!!!:" + nfilter.getPublishKey());
-                        Log.i("scrap_nhis", "mStrnFilterKey!!!!:" + nfilterPublicKey);
-                        Log.i("scrap_nhis", "nfilterCoworkKey!!!!:" + NFilter.COWORKER_CODE);
-
-//                        String encPwd = getPaceUrlParam(decUrl, "passwd");
-
-                        // NFilter nFilter = new NFilter(CabWebActivity.this);
-                        // nFilter.setPublicKey("");
-                        /*
-                         * byte[] decPwd =
-						 * NFilterUtils.getInstance().nSaferDecrypt(encPwd);
-						 * String decPwdStr = new String(decPwd);
-						 * Log.i("TEST","decPwdStr:"+encPwd);
-						 * Log.i("TEST","decPwdStr:"+decPwdStr);
-						 * Log.i("TEST","encURL:"+getPaceUrlParam(decUrl,
-						 * "encUrl"));
-						 */
-
-
-                        String passwd = getPaceUrlParam(decUrl, "passwd");
-
-                        Log.i("scrap_nhis", "decurl: " + decUrl);
-                        Log.i("scrap_nhis", "jumin:" + getPaceUrlParam(decUrl, "jumin"));
-                        json.put("ORG", "62"); /* 서비스분류코드 */
-                        json.put("FCODE", getPaceUrlParam(decUrl, "code")); /* 서비스분류명칭 */
-                        json.put("CERTKEY", "13FCAE3400^ffmBA3Dk/5VERFwg"); /*
-                                                                             * 인증키(
-																			 * 라이센스키
-																			 * )
-																			 */
-                        // json.put("MODULE", "1,2"); /*서비스구분코드 : 가입증명서 +
-                        // 보험료납부내역*/
-                        json.put("MODULE", "2,3"); /* 서비스구분코드 : 가입증명서 + 보험료납부내역 */
-                        json.put("CERTNAME", getPaceUrlParam(decUrl, "certnm")); /* 인증서명 */
-                        json.put("CERTPWD", aesenc); // getPaceUrlParam(decUrl,
-                        // "passwd"));
-                        // /*인증서비밀번호*/
-                        json.put("JUMIN", getPaceUrlParam(decUrl, "jumin").replaceAll(" ", "+")); /* 주민번호 */
-
-                        json.put("STARTDATE", getPaceUrlParam(decUrl, "startdate")); /* 조회시작일자 */
-                        json.put("ENDDATE", getPaceUrlParam(decUrl, "enddate")); /* 조회종료일자 */
-                        json.put("FAXNUM", getPaceUrlParam(decUrl, "faxnum")); /* 조회종료일자 */
-                        // json.put("ENCKEY", getPaceUrlParam(decUrl,
-                        // "encKey")); /*구간 암호화 키 값*/
-                        // json.put("ENCURL", getPaceUrlParam(decUrl,
-                        // "encUrl")); /*구간 암호화 전송 URL*/
-                        json.put("INXECURE", "Y");
-
-                        Log.i("scrap_nhis", json.toString());
 
                         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
-                                iftCoreEnV2 ss1 = new iftCoreEnV2(CabWebActivity.this, new InfoTecCoreCompelete() {
-                                    @Override
-                                    public void onRequestComplete(boolean b, String s) {
-
-                                    }
-
-                                    @Override
-                                    public void onRequestProgress(int i, String progressMsg) {
-                                        Log.i("scrap_nhis", "progress Msg :" + progressMsg);
-                                    }
-                                });
-                                Log.i("scrap_nhis", "infotect startEngine");
-                                String progressMsg = ss1.startEngine(obj.toString());
-                                Log.i("scrap_nhis", "infotect endEngine");
-                                Log.i("scrap_nhis", "progress Msg :" + progressMsg);
+                                JSONObject obj = null;
+                                try {
+                                     obj = getJsonObjectForScrap(decUrl, "NHIS", "");
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                                Log.i("scrap", "infotech nhis obj :::" + obj.toString());
+                                iftCoreEnV2 iftCore = new iftCoreEnV2(CabWebActivity.this, infoTecListener);
+                                String strScrapResult = iftCore.startEngine(obj.toString());
+                                Log.i("scrap", "scrap nhis result :: " + strScrapResult);
+                                Runnable infoTecThread = createInfoTecThread(strScrapResult, "nhis");
+                                runOnUiThread(infoTecThread);
                             }
                         }).start();
 
-//                        handleScrap.postDelayed(new Runnable() {
-//
-//                            @Override
-//                            public void run() {
-////                                SmartAIB smartAIB = new SmartAIB(CabWebActivity.this, handleScrap);// .AIB_Execute(json.toString());
-////                                smartAIB.setAIBLog(true);
-////                                smartAIB.setCipherInfoDict_for_input(mapRoot);
-////                                /** nFilter 키보드보안으로 인증서비밀번호를 암호화할 경우 */
-////                                smartAIB.setKeySecurity(KeySecurity.KEY_SECURITY_NFILTER_STANDALONE, new String[]{nfilterPublicKey, nfilterCoworkKey});
-////
-////                                smartAIB.AIB_Execute(json.toString());
-//                                iftCoreEnV2 ss1 = new iftCoreEnV2(CabWebActivity.this, new InfoTecCoreCompelete() {
-//                                    @Override
-//                                    public void onRequestComplete(boolean b, String s) {
-//
-//                                    }
-//
-//                                    @Override
-//                                    public void onRequestProgress(int i, String progressMsg) {
-//                                        Log.i("progressMsg", "progress Msg :" + progressMsg);
-//                                    }
-//                                });
-//                                ss1.startEngine(obj.toString());
-//                            }
-//
-//                        }, 1000);
+                        for (final BankCode bc : BankCode.values()) {
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    JSONObject obj = null;
+                                    try {
+                                        obj = getJsonObjectForScrap(decUrl, "BANK", bc.getCode());
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                    Log.i("scrap", "infotech bank "+bc.getName() + " obj :::" + obj.toString());
+                                    iftCoreEnV2 iftCore = new iftCoreEnV2(CabWebActivity.this, infoTecListener);
+                                    String strScrapResult = iftCore.startEngine(obj.toString());
+                                    Log.i("scrap", "scrap " + bc.getName() + " bank result :: " + strScrapResult);
+                                    Runnable infoTecThread = createInfoTecThread(strScrapResult, "bank");
+                                    runOnUiThread(infoTecThread);
+                                }
+                            }).start();
+                        }
 
                     } catch (Exception e) {
-                        Log.e("scrap_nhis", "nhis scrap exception ::: " + e.getMessage());
+                        Log.e("scrap", "nhis scrap exception ::: " + e.getMessage());
                         e.printStackTrace();
 
                         mMainWebView.loadUrl("javascript:scrapCallback('FAIL', '처리중 오류가 발생했습니다.')");
@@ -1465,6 +1522,54 @@ public class CabWebActivity extends Activity {
          * @Override public void onReceivedSslError(WebView view,
 		 * SslErrorHandler handler, SslError error) { handler.proceed(); }
 		 */
+    }
+
+    //InfoTech Scraping을 위해 Input Json Object를 생성.
+    private JSONObject getJsonObjectForScrap(String decUrl, String scrapType, String bankCode) throws Exception {
+        iftCoreEnV2 iftEncPw = new iftCoreEnV2(null, null);
+        //주민등록번호
+        // TODO: 2018. 1. 30. 주번도 infotech 에서 준 라이브러리로 바꾸자.. Crypto 객체가 기융꺼임..
+        String bizEndNo = iftEncPw.iftEncPrarm(Crypto.decrypt(getPaceUrlParam(decUrl, "jumin"), "welcomeloan_kwic", "utf-8"));
+
+        //인증서 정보 암호화
+        CabNFilterComponent nfilter = (CabNFilterComponent) mWebManager.getComponents("nfilter");
+        final String nfilterPublicKey = nfilter.getPublishKey();
+        final String nfilterCoworkKey = NFilter.COWORKER_CODE;
+        String aesenc = nfilter.aesencDataForId("certificatePass");
+        String certPw = iftEncPw.iftEncPrarm(iftEncPw.nFilterPassword(aesenc, nfilterPublicKey, nfilterCoworkKey));
+        String certNm = Base64.encodeToString(getPaceUrlParam(decUrl, "certnm").getBytes(), Base64.DEFAULT);
+        String fromDate = getPaceUrlParam(decUrl, "startdate");
+        String toDate = getPaceUrlParam(decUrl, "enddate");
+
+        //default options
+        final JSONObject obj = new JSONObject();
+        obj.put("appCd", "com.welcomeloan.mobile");
+        obj.put("bizEncNo", bizEndNo);
+
+        obj.put("certNm", certNm);
+        obj.put("signEncPw",certPw);
+
+        switch (scrapType) {
+            case "NHIS":
+                obj.put("svcCd", "B0001,B0002");
+                obj.put("orgCd", "nhic");
+                obj.put("devMode","R");
+                obj.put("fromDate", fromDate);
+                obj.put("toDate", toDate);
+                break;
+
+            case "BANK":
+                obj.put("svcCd", "B0001");
+                obj.put("orgCd", "bank");
+                obj.put("bankCd", bankCode);
+                obj.put("useChannel", "0");
+                obj.put("loginMethod", "CERT");
+                obj.put("curCd", "KRW");
+                obj.put("sdate", fromDate);
+                obj.put("edate", toDate);
+                break;
+        }
+        return obj;
     }
 
     @Override
