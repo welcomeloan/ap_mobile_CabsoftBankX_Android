@@ -44,9 +44,6 @@ import com.cabsoft.rainbowbr.schememgr.CabWebManager;
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.gun0912.tedpermission.PermissionListener;
 import com.gun0912.tedpermission.TedPermission;
-import com.infotech.IFTCrypto.InfoTecCoreCompelete;
-import com.infotech.IFTCrypto.iftCoreEnV2;
-import com.kwic.security.main.Crypto;
 import com.lenddo.data.AndroidData;
 import com.lenddo.data.listeners.OnDataSendingCompleteCallback;
 import com.lenddo.data.models.ClientOptions;
@@ -54,6 +51,8 @@ import com.linkprice.app_interlock.Lpfront;
 import com.nshc.nfilter.NFilter;
 import com.pacesystem.lib.RecognitionResult;
 import com.pacesystem.paceidcardrecog.PreviewActivity;
+import com.welcome.scraping.AllScrap;
+import com.welcome.scraping.ScrapRunnable;
 import com.welcomeloan.mobile.R;
 
 import org.json.JSONObject;
@@ -71,6 +70,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Future;
 
 //import com.kwic.saib.pub.KW_CIPHER_TYPE;
 //import com.kwic.saib.pub.KeySecurity;
@@ -108,122 +108,6 @@ public class CabWebActivity extends Activity {
 
     //adid
     final Adid adid  = new Adid();
-
-    //infoTech 은행 스크래핑을 위한 enum
-    enum BankCode {
-        BANK_KDB        {
-            public String getCode() {return "002";}
-            public String getName() {return "산업은행";}
-        },
-        BANK_IBK        {
-            public String getCode() {return "003";}
-            public String getName() {return "기업은행";}
-        },
-        BANK_KB         {
-            public String getCode() {return "004";}
-            public String getName() {return "국민은행";}
-        },
-        BANK_SUHYUP     {
-            public String getCode() {return "007";}
-            public String getName() {return "수협은행";}
-        },
-        BANK_NH         {
-            public String getCode() {return "011";}
-            public String getName() {return "농협은행";}
-        },
-        BANK_WOORI      {
-            public String getCode() {return "020";}
-            public String getName() {return "우리은행";}
-        },
-        BANK_SC         {
-            public String getCode() {return "023";}
-            public String getName() {return "SC은행";}
-        },
-        BANK_CITY       {
-            public String getCode() {return "027";}
-            public String getName() {return "씨티은행";}
-        },
-        BANK_DGB        {
-            public String getCode() {return "031";}
-            public String getName() {return "대구은행";}
-        },
-        BANK_BUSAN      {
-            public String getCode() {return "032";}
-            public String getName() {return "부산은행";}
-        },
-        BANK_KJ         {
-            public String getCode() {return "034";}
-            public String getName() {return "광주은행";}
-        },
-        BANK_JEJU      {
-            public String getCode() {return "035";}
-            public String getName() {return "제은행";}
-        },
-        BANK_JB         {
-            public String getCode() {return "037";}
-            public String getName() {return "전북은행";}
-        },
-        BANK_KN         {
-            public String getCode() {return "039";}
-            public String getName() {return "경남은행";}
-        },
-        BANK_MG         {
-            public String getCode() {return "045";}
-            public String getName() {return "새마을금고";}
-        },
-        BANK_SINHYUP    {
-            public String getCode() {return "048";}
-            public String getName() {return "신협";}
-        },
-        BANK_EPOST      {
-            public String getCode() {return "079";}
-            public String getName() {return "우체국";}
-        },
-        BANK_KEB        {
-            public String getCode() {return "081";}
-            public String getName() {return "하나은행";}
-        },
-        BANK_SHINHAN    {
-            public String getCode() {return "088";}
-            public String getName() {return "신한은행";}
-        },
-        BANK_KBANK      {
-            public String getCode() {return "089";}
-            public String getName() {return "K뱅크";}
-        },
-        BANK_KAKAO      {
-            public String getCode() {return "090";}
-            public String getName() {return "카카오뱅크";}
-        },
-        BANK_DAISHIN    {
-            public String getCode() {return "267";}
-            public String getName() {return "대신증권";}
-        },
-        BANK_NHQV       {
-            public String getCode() {return "289";}
-            public String getName() {return "NH투자증권";}
-        },
-        BANK_SMPOP      {
-            public String getCode() {return "240";}
-            public String getName() {return "삼성증권";}
-        },
-        BANK_MERITZ     {
-            public String getCode() {return "287";}
-            public String getName() {return "메리츠증권";}
-        },
-        BANK_SHINVEST   {
-            public String getCode() {return "278";}
-            public String getName() {return "신한투자증권";}
-        };
-
-        public String getCode() {
-            return this.getCode();
-        }
-
-        public String getName() {
-            return this.getName();
-        }
-    }
 
     //렌도 백그라운드 실행
     private class MyLenddoTask extends AsyncTask<Void, Integer, Void> {
@@ -320,50 +204,30 @@ public class CabWebActivity extends Activity {
         }
     }
 
-    InfoTecCoreCompelete infoTecListener =  new InfoTecCoreCompelete() {
-        @Override
-        public void onRequestComplete(boolean b, String s) {
-
-        }
-
-        @Override
-        public void onRequestProgress(int i, String progressMsg) {
-
-        }
-    };
-
-    private Runnable createInfoTecThread(final String strScrapResult, final String strScrapType) {
+    private Runnable createScrapResult(final AllScrap allScrap) {
         Runnable run = new Runnable() {
             @Override
             public void run() {
-                // TODO: 2018. 1. 30.
                 String result = "";
-                String data = "";
+                HashMap<String, String> datas = new HashMap<String, String>();
                 String errDoc = "";
 
                 try {
                     getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-                    JSONObject obj = new JSONObject(strScrapResult);
-                    result = obj.getString("errYn");
-
-                    if ("N".equals(result)) {
-                        data = obj.toString();
-                    } else {
-                        data = obj.getString("errMsg");
-                        errDoc = obj.getString("errMsg");
+                    for (ScrapRunnable sr : allScrap.runnables) {
+                        JSONObject obj = new JSONObject(sr.getStrScrapResult());
+                        result = obj.getString("errYn");
+                        Log.i("all scrap", "scrap result ::: " + sr.getScrapType() + " --- " + obj.toString());
+                        if ("N".equals(result)) {
+                            datas.put(sr.getScrapType(), obj.toString());
+                        }
                     }
-
                 } catch (Exception e) {
                     e.printStackTrace();
-
                     result = "EXCEPTION";
-                    data = e.getMessage();
                 }
 
-                // longTextLogger("CabWebActivity", data);
-
-                //mMainWebView.loadUrl("javascript:scrapCallback('" + result + "', '" + data + "', '" + errDoc + "')");
+                mMainWebView.loadUrl("javascript:scrapCallback('" + result + "', '" + datas + "', '" + errDoc + "')");
             }
         };
 
@@ -1338,49 +1202,38 @@ public class CabWebActivity extends Activity {
                     final JSONObject json = new JSONObject();
 
                     try {
-                        final String decUrl = URLDecoder.decode(url, "UTF-8");
-                        Log.i("scrap_nhis", "decUrl:" + decUrl);
-
                         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+                        final String decUrl = URLDecoder.decode(url, "UTF-8");
+                        Log.i("scrap_nhis", "decUrl:" + decUrl);
+                        //인증서 정보 암호화
+                        CabNFilterComponent nfilter = (CabNFilterComponent) mWebManager.getComponents("nfilter");
+
+                        // TODO: 2018. 2. 1. 동의 시 상품 상태를 보고 어떤 스크래핑을 돌려야 될지 정해줘야됨.
+                        // 임시 데이터 넣기
+                        ArrayList<String> scrapTypes = new ArrayList<String>();
+                        scrapTypes.add(0, "NHIS");
+                        scrapTypes.add(1, "BANK");
+                        scrapTypes.add(2, "ONNARA");
+
+                        final AllScrap allScrap = new AllScrap(decUrl, nfilter, scrapTypes, CabWebActivity.this);
+                        allScrap.runScrap();
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
-                                JSONObject obj = null;
-                                try {
-                                     obj = getJsonObjectForScrap(decUrl, "NHIS", "");
-                                } catch (Exception e) {
-                                    e.printStackTrace();
+                                while (true) {
+                                    boolean allDone = true;
+                                    for(Future<?> future : allScrap.futures){
+                                        allDone &= future.isDone(); // check if future is done
+                                    }
+                                    if (allDone) {
+                                        Runnable uiCall = createScrapResult(allScrap);
+                                        runOnUiThread(uiCall);
+                                        break;
+                                    }
                                 }
-                                Log.i("scrap", "infotech nhis obj :::" + obj.toString());
-                                iftCoreEnV2 iftCore = new iftCoreEnV2(CabWebActivity.this, infoTecListener);
-                                String strScrapResult = iftCore.startEngine(obj.toString());
-                                Log.i("scrap", "scrap nhis result :: " + strScrapResult);
-                                Runnable infoTecThread = createInfoTecThread(strScrapResult, "nhis");
-                                runOnUiThread(infoTecThread);
                             }
                         }).start();
-
-                        for (final BankCode bc : BankCode.values()) {
-                            new Thread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    JSONObject obj = null;
-                                    try {
-                                        obj = getJsonObjectForScrap(decUrl, "BANK", bc.getCode());
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
-                                    Log.i("scrap", "infotech bank "+bc.getName() + " obj :::" + obj.toString());
-                                    iftCoreEnV2 iftCore = new iftCoreEnV2(CabWebActivity.this, infoTecListener);
-                                    String strScrapResult = iftCore.startEngine(obj.toString());
-                                    Log.i("scrap", "scrap " + bc.getName() + " bank result :: " + strScrapResult);
-                                    Runnable infoTecThread = createInfoTecThread(strScrapResult, "bank");
-                                    runOnUiThread(infoTecThread);
-                                }
-                            }).start();
-                        }
-
                     } catch (Exception e) {
                         Log.e("scrap", "nhis scrap exception ::: " + e.getMessage());
                         e.printStackTrace();
@@ -1522,54 +1375,6 @@ public class CabWebActivity extends Activity {
          * @Override public void onReceivedSslError(WebView view,
 		 * SslErrorHandler handler, SslError error) { handler.proceed(); }
 		 */
-    }
-
-    //InfoTech Scraping을 위해 Input Json Object를 생성.
-    private JSONObject getJsonObjectForScrap(String decUrl, String scrapType, String bankCode) throws Exception {
-        iftCoreEnV2 iftEncPw = new iftCoreEnV2(null, null);
-        //주민등록번호
-        // TODO: 2018. 1. 30. 주번도 infotech 에서 준 라이브러리로 바꾸자.. Crypto 객체가 기융꺼임..
-        String bizEndNo = iftEncPw.iftEncPrarm(Crypto.decrypt(getPaceUrlParam(decUrl, "jumin"), "welcomeloan_kwic", "utf-8"));
-
-        //인증서 정보 암호화
-        CabNFilterComponent nfilter = (CabNFilterComponent) mWebManager.getComponents("nfilter");
-        final String nfilterPublicKey = nfilter.getPublishKey();
-        final String nfilterCoworkKey = NFilter.COWORKER_CODE;
-        String aesenc = nfilter.aesencDataForId("certificatePass");
-        String certPw = iftEncPw.iftEncPrarm(iftEncPw.nFilterPassword(aesenc, nfilterPublicKey, nfilterCoworkKey));
-        String certNm = Base64.encodeToString(getPaceUrlParam(decUrl, "certnm").getBytes(), Base64.DEFAULT);
-        String fromDate = getPaceUrlParam(decUrl, "startdate");
-        String toDate = getPaceUrlParam(decUrl, "enddate");
-
-        //default options
-        final JSONObject obj = new JSONObject();
-        obj.put("appCd", "com.welcomeloan.mobile");
-        obj.put("bizEncNo", bizEndNo);
-
-        obj.put("certNm", certNm);
-        obj.put("signEncPw",certPw);
-
-        switch (scrapType) {
-            case "NHIS":
-                obj.put("svcCd", "B0001,B0002");
-                obj.put("orgCd", "nhic");
-                obj.put("devMode","R");
-                obj.put("fromDate", fromDate);
-                obj.put("toDate", toDate);
-                break;
-
-            case "BANK":
-                obj.put("svcCd", "B0001");
-                obj.put("orgCd", "bank");
-                obj.put("bankCd", bankCode);
-                obj.put("useChannel", "0");
-                obj.put("loginMethod", "CERT");
-                obj.put("curCd", "KRW");
-                obj.put("sdate", fromDate);
-                obj.put("edate", toDate);
-                break;
-        }
-        return obj;
     }
 
     @Override
