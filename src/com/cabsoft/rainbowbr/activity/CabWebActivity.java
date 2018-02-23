@@ -17,7 +17,6 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -42,13 +41,13 @@ import com.cabsoft.rainbowbr.components.nfilter.CabNFilterComponent;
 import com.cabsoft.rainbowbr.property.CabBankAppProperty;
 import com.cabsoft.rainbowbr.schememgr.CabWebManager;
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
+import com.google.gson.Gson;
 import com.gun0912.tedpermission.PermissionListener;
 import com.gun0912.tedpermission.TedPermission;
 import com.lenddo.data.AndroidData;
 import com.lenddo.data.listeners.OnDataSendingCompleteCallback;
 import com.lenddo.data.models.ClientOptions;
 import com.linkprice.app_interlock.Lpfront;
-import com.nshc.nfilter.NFilter;
 import com.pacesystem.lib.RecognitionResult;
 import com.pacesystem.paceidcardrecog.PreviewActivity;
 import com.welcome.scraping.AllScrap;
@@ -211,6 +210,7 @@ public class CabWebActivity extends Activity {
                 String result = "";
                 HashMap<String, String> datas = new HashMap<String, String>();
                 String errDoc = "";
+                Gson gson = new Gson();
 
                 try {
                     getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -221,140 +221,21 @@ public class CabWebActivity extends Activity {
                         if ("N".equals(result)) {
                             datas.put(sr.getScrapType(), obj.toString());
                         }
+
+                        if (datas.size() > 0) {
+                            result = "SUCCESS";
+                        }
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                     result = "EXCEPTION";
                 }
-
                 mMainWebView.loadUrl("javascript:scrapCallback('" + result + "', '" + datas + "', '" + errDoc + "')");
             }
         };
 
         return run;
     }
-
-    private Handler handleScrap = new Handler() {
-
-        @SuppressWarnings({"rawtypes"})
-        public void handleMessage(Message msg) {
-            HashMap map = (HashMap) msg.obj;
-
-            String result = "";
-            String data = "";
-            String errDoc = "";
-
-            try {
-
-                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-                JSONObject obj = new JSONObject((String) map.get("rtnMsg"));
-
-                result = obj.getString("RESULT");
-
-                if ("SUCCESS".equals(result)) {
-                    data = obj.toString();
-                } else {
-                    data = obj.getString("ERRMSG");
-                    errDoc = obj.getString("ERRDOC");
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-
-                result = "EXCEPTION";
-                data = e.getMessage();
-            }
-
-            // longTextLogger("CabWebActivity", data);
-
-            mMainWebView.loadUrl("javascript:scrapCallback('" + result + "', '" + data + "', '" + errDoc + "')");
-
-        }
-
-    };
-
-    private Handler handleScrapBank = new Handler() {
-
-        @SuppressWarnings({"rawtypes"})
-        public void handleMessage(Message msg) {
-            HashMap map = (HashMap) msg.obj;
-
-            String result = "";
-            String data = "";
-            String errDoc = "";
-
-            try {
-
-                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-                Log.d("text", "msg:" + (String) map.get("rtnMsg"));
-
-                JSONObject obj = new JSONObject((String) map.get("rtnMsg"));
-
-                result = obj.getString("RESULT");
-
-                if ("SUCCESS".equals(result)) {
-                    data = obj.toString();
-                } else {
-                    data = obj.getString("ERRMSG");
-                    errDoc = obj.getString("ERRDOC");
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-
-                result = "EXCEPTION";
-                data = e.getMessage();
-            }
-
-            // longTextLogger("CabWebActivity", data);
-
-            mMainWebView.loadUrl("javascript:scrapCallbackBank1('" + result + "', '" + data + "', '" + errDoc + "')");
-
-        }
-    };
-
-    private Handler handleScrapBank2 = new Handler() {
-
-        @SuppressWarnings({"rawtypes"})
-        public void handleMessage(Message msg) {
-            HashMap map = (HashMap) msg.obj;
-
-            String result = "";
-            String data = "";
-            String errDoc = "";
-
-            try {
-
-                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-                Log.d("text", "msg:" + (String) map.get("rtnMsg"));
-
-                JSONObject obj = new JSONObject((String) map.get("rtnMsg"));
-
-                result = obj.getString("RESULT");
-
-                if ("SUCCESS".equals(result)) {
-                    data = obj.toString();
-                } else {
-                    data = obj.getString("ERRMSG");
-                    errDoc = obj.getString("ERRDOC");
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-
-                result = "EXCEPTION";
-                data = e.getMessage();
-            }
-
-            // longTextLogger("CabWebActivity", data);
-
-            mMainWebView.loadUrl("javascript:scrapCallbackBank2('" + result + "', '" + data + "', '" + errDoc + "')");
-
-        }
-    };
 
     @TargetApi(Build.VERSION_CODES.M)
     @SuppressLint("JavascriptInterface")
@@ -993,215 +874,13 @@ public class CabWebActivity extends Activity {
 
                     mMainWebView.loadUrl("javascript:preScrapCallback('SUCCESS', '')");
 
-                } else if (url.contains("scrap_bank1")) { // ios 호환용 더미
+                } else if (url.contains("all_scrap")) { //전체 스크래핑 하기f
+
                     final JSONObject json = new JSONObject();
 
                     try {
-                        final HashMap<String, HashMap<String, Object>> mapRoot = new HashMap<String, HashMap<String, Object>>();
-                        CabNFilterComponent nfilter = (CabNFilterComponent) mWebManager.getComponents("nfilter");
+                        //json.put("CERTKEY", "13FCAE3400^ffmBA3Dk/5VERFwg"); // 인증키(라이센스키)
 
-                        final String nfilterPublicKey = nfilter.getPublishKey();
-                        final String nfilterCoworkKey = NFilter.COWORKER_CODE;
-
-                        String aesenc = nfilter.aesencDataForId("certificatePass");
-                        Log.i("TEST", "aesenc:" + aesenc);
-
-                        HashMap<String, Object> encMap = new HashMap<String, Object>();
-//                        encMap.put("encType", KW_CIPHER_TYPE.KW_CIPHER_SEED128);
-                        encMap.put("encKey", "welcomeloan_kwic");
-                        // mapRoot.put("JUMIN", encMap);
-                        mapRoot.put("NUMBER", encMap);
-
-                        String decUrl = URLDecoder.decode(url, "UTF-8");
-                        String encPwd = getPaceUrlParam(decUrl, "passwd");
-
-                        // NFilter nFilter = new NFilter(CabWebActivity.this);
-                        // nFilter.setPublicKey("");
-                        /*
-                         * byte[] decPwd =
-						 * NFilterUtils.getInstance().nSaferDecrypt(encPwd);
-						 * String decPwdStr = new String(decPwd);
-						 * Log.i("TEST","decPwdStr:"+encPwd);
-						 * Log.i("TEST","decPwdStr:"+decPwdStr);
-						 * Log.i("TEST","encURL:"+getPaceUrlParam(decUrl,
-						 * "encUrl"));
-						 */
-                        final String nFilterPubKey = getPaceUrlParam(decUrl, "publickey");
-                        final String nFilterCoworkKey = getPaceUrlParam(decUrl, "coworkkey");
-                        // Log.i("TEST","nFilter public key:"+ nFilterPubKey);
-                        // Log.i("TEST","nFilter cowork key:"+
-                        // nFilterCoworkKey);
-                        /*
-                         * String decNum =
-						 * Crypto.decrypt(getPaceUrlParam(decUrl,
-						 * "number").replaceAll(" ", "+"), "welcomeloan_kwic",
-						 * "utf-8"); String decJumin =
-						 * Crypto.decrypt(getPaceUrlParam(decUrl, "jumin"),
-						 * "welcomeloan_kwic", "utf-8");
-						 * Log.i("text","decNum:"+decNum);
-						 * Log.i("text","decJumin:"+decJumin);
-						 */
-                        String passwd = getPaceUrlParam(decUrl, "passwd");
-
-                        // Log.i("TEST","decurl: "+ decUrl);
-                        // Log.i("TEST","jumin:"+getPaceUrlParam(decUrl,
-                        // "jumin"));
-                        json.put("ORG", "1001"); /* 서비스분류코드 */
-                        json.put("FCODE", getPaceUrlParam(decUrl, "code")); /* 서비스분류명칭 */
-                        json.put("CERTKEY", "13FCAE3400^ffmBA3Dk/5VERFwg"); /*
-                                                                             * 인증키(
-																			 * 라이센스키
-																			 * )
-																			 */
-                        json.put("MODULE", "3"); /* 서비스구분코드 : 가입증명서 + 보험료납부내역 */
-                        json.put("CERTNAME", getPaceUrlParam(decUrl, "certnm")); /* 인증서명 */
-                        json.put("CERTPWD", aesenc); // getPaceUrlParam(decUrl,
-                        // "passwd"));
-                        // /*인증서비밀번호*/
-                        json.put("JUMIN", getPaceUrlParam(decUrl, "jumin")); /* 주민번호 */
-
-                        json.put("STARTDATE", getPaceUrlParam(decUrl, "startdate")); /* 조회시작일자 */
-                        json.put("ENDDATE", getPaceUrlParam(decUrl, "enddate")); /* 조회종료일자 */
-                        // json.put("ENCKEY", getPaceUrlParam(decUrl,
-                        // "encKey")); /*구간 암호화 키 값*/
-                        // json.put("ENCURL", getPaceUrlParam(decUrl,
-                        // "encUrl")); /*구간 암호화 전송 URL*/
-                        json.put("INXECURE", "Y");
-                        json.put("NUMBER", getPaceUrlParam(decUrl, "number").replaceAll(" ", "+")); /* 계좌번호 */
-                        json.put("LOGINMETHOD", getPaceUrlParam(decUrl, "loginmethod"));
-                        json.put("CUS_KIND", getPaceUrlParam(decUrl, "cus_kind")); /* 계좌번호 */
-
-                        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-                        Log.i("text", "json:" + json.toString());
-                        handleScrap.postDelayed(new Runnable() {
-
-                            @Override
-                            public void run() {
-//                                SmartAIB smartAIB = new SmartAIB(CabWebActivity.this, handleScrapBank);// .AIB_Execute(json.toString());
-//                                smartAIB.setAIBLog(true);
-//                                smartAIB.setCipherInfoDict_for_input(mapRoot);
-//                                /** nFilter 키보드보안으로 인증서비밀번호를 암호화할 경우 */
-//                                smartAIB.setKeySecurity(KeySecurity.KEY_SECURITY_NFILTER_STANDALONE, new String[]{nfilterPublicKey, nfilterCoworkKey});
-//
-//                                smartAIB.AIB_Execute(json.toString());
-                            }
-
-                        }, 1000);
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-
-                        mMainWebView.loadUrl("javascript:scrapCallback('FAIL', '처리중 오류가 발생했습니다.')");
-                    }
-
-                } else if (url.contains("scrap_bank2")) { // ios 호환용 더미
-                    final JSONObject json = new JSONObject();
-
-                    try {
-                        final HashMap<String, HashMap<String, Object>> mapRoot = new HashMap<String, HashMap<String, Object>>();
-                        CabNFilterComponent nfilter = (CabNFilterComponent) mWebManager.getComponents("nfilter");
-
-                        final String nfilterPublicKey = nfilter.getPublishKey();
-                        final String nfilterCoworkKey = NFilter.COWORKER_CODE;
-
-                        String aesenc = nfilter.aesencDataForId("certificatePass");
-                        Log.i("TEST", "aesenc:" + aesenc);
-
-                        HashMap<String, Object> encMap = new HashMap<String, Object>();
-//                        encMap.put("encType", KW_CIPHER_TYPE.KW_CIPHER_SEED128);
-                        encMap.put("encKey", "welcomeloan_kwic");
-                        // mapRoot.put("JUMIN", encMap);
-                        mapRoot.put("NUMBER", encMap);
-
-                        Log.i("TEST", "nfilterPublicKey!!!!:" + nfilter.getPublishKey());
-                        Log.i("TEST", "mStrnFilterKey!!!!:" + nfilterPublicKey);
-                        Log.i("TEST", "nfilterCoworkKey!!!!:" + NFilter.COWORKER_CODE);
-                        String decUrl = URLDecoder.decode(url, "UTF-8");
-                        Log.i("TEST", "decUrl:" + decUrl);
-                        String encPwd = getPaceUrlParam(decUrl, "passwd");
-
-                        // NFilter nFilter = new NFilter(CabWebActivity.this);
-                        // nFilter.setPublicKey("");
-                        /*
-                         * byte[] decPwd =
-						 * NFilterUtils.getInstance().nSaferDecrypt(encPwd);
-						 * String decPwdStr = new String(decPwd);
-						 * Log.i("TEST","decPwdStr:"+encPwd);
-						 * Log.i("TEST","decPwdStr:"+decPwdStr);
-						 * Log.i("TEST","encURL:"+getPaceUrlParam(decUrl,
-						 * "encUrl"));
-						 */
-                        final String nFilterPubKey = getPaceUrlParam(decUrl, "publickey");
-                        final String nFilterCoworkKey = getPaceUrlParam(decUrl, "coworkkey");
-                        // Log.i("TEST","nFilter public key:"+ nFilterPubKey);
-                        // Log.i("TEST","nFilter cowork key:"+
-                        // nFilterCoworkKey);
-                        /*
-                         * String decNum =
-						 * Crypto.decrypt(getPaceUrlParam(decUrl,
-						 * "number").replaceAll(" ", "+"), "welcomeloan_kwic",
-						 * "utf-8"); String decJumin =
-						 * Crypto.decrypt(getPaceUrlParam(decUrl, "jumin"),
-						 * "welcomeloan_kwic", "utf-8");
-						 * Log.i("text","decNum:"+decNum);
-						 * Log.i("text","decJumin:"+decJumin);
-						 */
-                        String passwd = getPaceUrlParam(decUrl, "passwd");
-
-                        Log.i("TEST", "decurl: " + decUrl);
-                        Log.i("TEST", "jumin:" + getPaceUrlParam(decUrl, "jumin"));
-                        json.put("ORG", "1001"); /* 서비스분류코드 */
-                        json.put("FCODE", getPaceUrlParam(decUrl, "code")); /* 서비스분류명칭 */
-                        json.put("CERTKEY", "13FCAE3400^ffmBA3Dk/5VERFwg"); /*
-                                                                             * 인증키(
-																			 * 라이센스키
-																			 * )
-																			 */
-                        json.put("MODULE", "3"); /* 서비스구분코드 : 가입증명서 + 보험료납부내역 */
-                        json.put("CERTNAME", getPaceUrlParam(decUrl, "certnm")); /* 인증서명 */
-                        json.put("CERTPWD", aesenc); // getPaceUrlParam(decUrl,
-                        // "passwd"));
-                        // /*인증서비밀번호*/
-                        json.put("JUMIN", getPaceUrlParam(decUrl, "jumin")); /* 주민번호 */
-
-                        json.put("STARTDATE", getPaceUrlParam(decUrl, "startdate")); /* 조회시작일자 */
-                        json.put("ENDDATE", getPaceUrlParam(decUrl, "enddate")); /* 조회종료일자 */
-                        // json.put("ENCKEY", getPaceUrlParam(decUrl,
-                        // "encKey")); /*구간 암호화 키 값*/
-                        // json.put("ENCURL", getPaceUrlParam(decUrl,
-                        // "encUrl")); /*구간 암호화 전송 URL*/
-                        json.put("INXECURE", "Y");
-                        json.put("NUMBER", getPaceUrlParam(decUrl, "number").replaceAll(" ", "+")); /* 계좌번호 */
-                        json.put("LOGINMETHOD", getPaceUrlParam(decUrl, "loginmethod"));
-                        json.put("CUS_KIND", getPaceUrlParam(decUrl, "cus_kind")); /* 계좌번호 */
-
-                        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-                        Log.i("text", "json:" + json.toString());
-                        handleScrap.postDelayed(new Runnable() {
-
-                            @Override
-                            public void run() {
-//                                SmartAIB smartAIB = new SmartAIB(CabWebActivity.this, handleScrapBank2);// .AIB_Execute(json.toString());
-//                                smartAIB.setAIBLog(true);
-//                                smartAIB.setCipherInfoDict_for_input(mapRoot);
-//                                /** nFilter 키보드보안으로 인증서비밀번호를 암호화할 경우 */
-//                                smartAIB.setKeySecurity(KeySecurity.KEY_SECURITY_NFILTER_STANDALONE, new String[]{nfilterPublicKey, nfilterCoworkKey});
-//
-//                                smartAIB.AIB_Execute(json.toString());
-                            }
-
-                        }, 1000);
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-
-                        mMainWebView.loadUrl("javascript:scrapCallback('FAIL', '처리중 오류가 발생했습니다.')");
-                    }
-
-                } else if (url.contains("scrap_nhis")) { // ios 호환용 더미
-                    final JSONObject json = new JSONObject();
-
-                    try {
                         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
                         final String decUrl = URLDecoder.decode(url, "UTF-8");
@@ -1209,14 +888,31 @@ public class CabWebActivity extends Activity {
                         //인증서 정보 암호화
                         CabNFilterComponent nfilter = (CabNFilterComponent) mWebManager.getComponents("nfilter");
 
-                        // TODO: 2018. 2. 1. 동의 시 상품 상태를 보고 어떤 스크래핑을 돌려야 될지 정해줘야됨.
-                        // 임시 데이터 넣기
-                        ArrayList<String> scrapTypes = new ArrayList<String>();
-                        scrapTypes.add(0, "NHIS");
-                        scrapTypes.add(1, "BANK");
-                        scrapTypes.add(2, "ONNARA");
+                        TelephonyManager tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+                        String strTelno = tm.getLine1Number();
 
-                        final AllScrap allScrap = new AllScrap(decUrl, nfilter, scrapTypes, CabWebActivity.this);
+                        if (strTelno != null) {
+                            strTelno = strTelno.replace("+82", "0");
+                        } else {
+                            strTelno = "";
+                        }
+
+                        final ArrayList<String> scrapTypes = new ArrayList<String>();
+//                        scrapTypes.add(0, "NHIS");
+//                        scrapTypes.add(1, "BANK");
+//                        scrapTypes.add(2, "ONNARA");
+//                        scrapTypes.add(3, "INSURE");
+                        //TODO: 2018.02.13 개발 서버서에서 조회가 안되서 업체에서 보고 있는 상황
+                        scrapTypes.add(0, "IROS");
+                        //초본 발급은 모바일에서 신청만 한다
+                        //scrapTypes.add(0, "GOV");
+                        //TODO 자동차 하이브리드 일때만 efine 조회하도록 로직 추가 필요
+                        //scrapTypes.add(4, "EFINE");
+
+                        final AllScrap allScrap = new AllScrap(decUrl, nfilter, scrapTypes, strTelno, CabWebActivity.this);
+                        //TODO 부동산 스크랩인 경우 호출
+                        //allScrap.setIsEstate(true);
+                        allScrap.init();
                         allScrap.runScrap();
                         new Thread(new Runnable() {
                             @Override
@@ -1240,97 +936,6 @@ public class CabWebActivity extends Activity {
 
                         mMainWebView.loadUrl("javascript:scrapCallback('FAIL', '처리중 오류가 발생했습니다.')");
                     }
-
-                } else if (url.contains("scrap")) { // 건강보험 스크래핑
-
-                    final JSONObject json = new JSONObject();
-
-                    try {
-                        final HashMap<String, HashMap<String, Object>> mapRoot = new HashMap<String, HashMap<String, Object>>();
-
-                        HashMap<String, Object> encMap = new HashMap<String, Object>();
-//                        encMap.put("encType", KW_CIPHER_TYPE.KW_CIPHER_SEED128);
-                        encMap.put("encKey", "welcomeloan_kwic");
-                        mapRoot.put("JUMIN", encMap);
-                        /*
-                         * obj1.put("CERTPWD","27bf3854545ace2f802ea4a1e4b4d373")
-						 * ; // 키보드 보안 프로그램에서 나온 패스워드 암호화된 값
-						 * obj1.put("NFILTER_PUBLICKEY",
-						 * "MDIwGhMABBYDB451twFPYO8akZ7nnHLogeYE645rBBTyTA5NvX3xZcVpGSpHborXJHAhvA=="
-						 * ); // NFilter 서버에서 받은 Public Key
-						 * obj1.put("NFILTER_COWORKKEY"
-						 * ,"95428f9e76bc7c50532c582d097b23b7"); // NFilter API를
-						 * 통하여 얻을 수 있는 CoworkerCode
-						 */
-
-                        CabNFilterComponent nfilter = (CabNFilterComponent) mWebManager.getComponents("nfilter");
-
-                        final String nfilterPublicKey = nfilter.getPublishKey();
-                        final String nfilterCoworkKey = NFilter.COWORKER_CODE;
-                        // String nfilterPublicKey = nfilter.getPublishKey();
-                        // String nfilterCoworkKey = NFilter.COWORKER_CODE;
-
-                        String aesenc = nfilter.aesencDataForId("certificatePass");
-
-                        String encJumin = getPaceUrlParam(url, "jumin");
-
-                        String decUrl = URLDecoder.decode(url, "UTF-8");
-
-                        json.put("ORG", "62"); /* 서비스분류코드 */
-                        json.put("FCODE", getPaceUrlParam(decUrl, "code")); /* 서비스분류명칭 */
-                        json.put("CERTKEY", "13FCAE3400^ffmBA3Dk/5VERFwg"); /*
-                                                                             * 인증키(
-																			 * 라이센스키
-																			 * )
-																			 */
-                        // json.put("MODULE", "1,2"); /*서비스구분코드 : 가입증명서 +
-                        // 보험료납부내역*/
-                        json.put("MODULE", "2,3"); /* 서비스구분코드 : 가입증명서 + 보험료납부내역 */
-                        json.put("CERTNAME", getPaceUrlParam(decUrl, "certnm")); /* 인증서명 */
-                        json.put("CERTPWD", aesenc/*
-                                                 * getPaceUrlParam(decUrl,
-												 * "passwd")
-												 */); /* 인증서비밀번호 */
-                        json.put("JUMIN", encJumin); /* 주민번호 */
-                        json.put("STARTDATE", getPaceUrlParam(decUrl, "startdate")); /* 조회시작일자 */
-                        json.put("ENDDATE", getPaceUrlParam(decUrl, "enddate")); /* 조회종료일자 */
-                        // json.put("ENCKEY", getPaceUrlParam(decUrl,
-                        // "encKey")); /*구간 암호화 키 값*/
-                        // json.put("ENCURL", getPaceUrlParam(decUrl,
-                        // "encUrl")); /*구간 암호화 전송 URL*/
-                        json.put("FAXNUM", getPaceUrlParam(decUrl, "faxnum")); /* 조회종료일자 */
-                        json.put("INXECURE", "Y");
-                        // json.put("NFILTER_PUBLICKEY", nfilterPublicKey);
-                        // json.put("NFILTER_COWORKKEY", nfilterCoworkKey);
-
-                        final String strJson = json.toString().replace("\\/", "/");
-
-                        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-                        handleScrap.postDelayed(new Runnable() {
-
-                            @Override
-                            public void run() {
-                                // new SmartAIB(CabWebActivity.this,
-                                // handleScrap).AIB_Execute(strJson);
-//                                SmartAIB smartAIB = new SmartAIB(CabWebActivity.this, handleScrap);// .AIB_Execute(json.toString());
-//                                smartAIB.setAIBLog(true);
-//                                smartAIB.setCipherInfoDict_for_input(mapRoot);
-//                                /** nFilter 키보드보안으로 인증서비밀번호를 암호화할 경우 */
-//                                smartAIB.setKeySecurity(KeySecurity.KEY_SECURITY_NFILTER_STANDALONE, new String[]{nfilterPublicKey, nfilterCoworkKey});
-//
-//                                smartAIB.AIB_Execute(json.toString());
-
-                            }
-
-                        }, 1000);
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-
-                        mMainWebView.loadUrl("javascript:scrapCallback('FAIL', '처리중 오류가 발생했습니다.')");
-                    }
-
                 } else if (url.contains("doLenddo")) {
 
                 }
