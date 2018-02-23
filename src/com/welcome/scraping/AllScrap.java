@@ -105,10 +105,11 @@ enum BankCode {
         public String getCode() {return "089";}
         public String getName() {return "K뱅크";}
     },
-    BANK_KAKAO      {
-        public String getCode() {return "090";}
-        public String getName() {return "카카오뱅크";}
-    },
+    //스크래핑 지원불가라 함..
+//    BANK_KAKAO      {
+//        public String getCode() {return "090";}
+//        public String getName() {return "카카오뱅크";}
+//    },
     BANK_DAISHIN    {
         public String getCode() {return "267";}
         public String getName() {return "대신증권";}
@@ -155,6 +156,13 @@ public class AllScrap {
     private String certPw;      //인증서 패스워드
     private String bizEndNo;    //암호화된 주번
     private String bizNo;       //복호화된 주번
+    private String sido;        //시도
+    private String sigg;        //시군구
+    private String telNo;       //전화번호
+    private String custNm;      //고객이름
+    private String bankSDate;   //은행조회 시작일
+    private String faxNum;
+    private boolean isEstate = false;
 
     private ExecutorService executeService;
 
@@ -162,30 +170,45 @@ public class AllScrap {
 
     private Activity activity;
 
-    public AllScrap(String decUrl, CabNFilterComponent nfilter, ArrayList<String> scrapTypes, Activity activity) {
+    private int THREAD_CNT = 15;
+
+    private String addr1;
+    private String addr2;
+
+    public AllScrap(String decUrl, CabNFilterComponent nfilter, ArrayList<String> scrapTypes, String telNo, Activity activity) {
         this.decUrl = decUrl;
         this.nfilter = nfilter;
         this.scrapTypes = scrapTypes;
         this.activity = activity;
-
-        init();
+        this.telNo = telNo;
     }
 
-    private void init() {
+    public void setIsEstate(boolean isEstate) {
+        this.isEstate = isEstate;
+    }
+
+    public void init() {
         this.iftEncPw = new iftCoreEnV2(null, null);
         this.bizEndNo = iftEncPw.iftEncPrarm(iftEncPw.iftDecryptExt("welcomeloan_kwic", getPaceUrlParam(decUrl, "jumin")));
         this.bizNo = iftEncPw.iftDecryptExt("welcomeloan_kwic", getPaceUrlParam(decUrl, "jumin"));
-        Log.i("","");
-        //this.bizEndNo = iftEncPw.iftEncPrarm(Crypto.decrypt(getPaceUrlParam(decUrl, "jumin"), "welcomeloan_kwic", "utf-8"));
 
         final String nfilterPublicKey = nfilter.getPublishKey();
         final String nfilterCoworkKey = NFilter.COWORKER_CODE;
         String aesenc = nfilter.aesencDataForId("certificatePass");
         this.certPw = iftEncPw.iftEncPrarm(iftEncPw.nFilterPassword(aesenc, nfilterPublicKey, nfilterCoworkKey));
+//        this.certPw = iftEncPw.nFilterPassword(aesenc, nfilterPublicKey, nfilterCoworkKey);
 
         this.certNm = Base64.encodeToString(getPaceUrlParam(decUrl, "certnm").getBytes(), Base64.DEFAULT);
         this.fromDate = getPaceUrlParam(this.decUrl, "startdate");
         this.toDate = getPaceUrlParam(this.decUrl, "enddate");
+        this.bankSDate = getPaceUrlParam(this.decUrl, "banksdate");
+
+        this.sido = getPaceUrlParam(this.decUrl, "sido");
+        this.sigg = getPaceUrlParam(this.decUrl, "sigg");
+
+        this.custNm = getPaceUrlParam(this.decUrl, "custnm");
+
+        this.faxNum = getPaceUrlParam(decUrl, "faxnum");
 
         ThreadFactory tf = new ThreadFactory() {
             @Override
@@ -195,17 +218,14 @@ public class AllScrap {
             }
         };
 
-        int thCnt = calCountScrapTypes();
-        executeService = Executors.newFixedThreadPool(thCnt, tf);
-
+        executeService = Executors.newFixedThreadPool(THREAD_CNT, tf);
     }
 
-    private int calCountScrapTypes() {
-        int cnt = this.scrapTypes.size();
-        if (this.scrapTypes.contains("BANK")) {
-            cnt = cnt - 1 + 20;
-        }
-        return cnt;
+    //온나라 조회 후 나오는 주소데이트를 저장
+    public void setKrasDatas(ArrayList<String> scrapTypes, String addr1, String addr2) {
+        this.scrapTypes = scrapTypes;
+        this.addr1 = addr1;
+        this.addr2 = addr2;
     }
 
     public void runScrap() throws Exception {
@@ -216,7 +236,7 @@ public class AllScrap {
                     inputObj = this.getJsonObjectForScrap(scrapType, bc.getCode());
                     Log.i("AllScrap", "Scrap Object ::: " + inputObj.toString());
                     ScrapRunnable sr = new ScrapRunnable(inputObj, scrapType+bc.getCode(), this.activity);
-//                    new Thread(sr).start();
+                    //ScrapRunnable sr = new ScrapRunnable(inputObj, scrapType, this.activity);
                     runnables.add(sr);
                     futures.add(executeService.submit(sr));
                 }
@@ -224,7 +244,6 @@ public class AllScrap {
                 inputObj = this.getJsonObjectForScrap(scrapType, "");
                 Log.i("AllScrap", "Scrap Object ::: " + inputObj.toString());
                 ScrapRunnable sr = new ScrapRunnable(inputObj, scrapType, this.activity);
-                //new Thread(sr).start();
                 runnables.add(sr);
                 futures.add(executeService.submit(sr));
             }
@@ -237,39 +256,95 @@ public class AllScrap {
         final JSONObject obj = new JSONObject();
         obj.put("appCd", "com.welcomeloan.mobile");
         obj.put("bizEncNo", this.bizEndNo);
+//        obj.put("bizNo", this.bizNo);
 
         obj.put("certNm", this.certNm);
         obj.put("signEncPw",this.certPw);
-
+        obj.put("devMode","T");
         switch (scrapType) {
             case "NHIS":    //건강보험
                 obj.put("svcCd", "B0001,B0002");
                 obj.put("orgCd", "nhic");
-                obj.put("devMode","R");
                 obj.put("fromDate", this.fromDate);
                 obj.put("toDate", this.toDate);
+                obj.put("faxNum", this.faxNum);
                 break;
-
             case "BANK":    //은행내역
-                obj.put("svcCd", "B0001");
+                obj.put("svcCd", "B0001,B0002");
                 obj.put("orgCd", "bank");
                 obj.put("bankCd", bankCode);
-                obj.put("useChannel", "0");
+                //obj.put("useChannel", "0");
                 obj.put("loginMethod", "CERT");
                 obj.put("curCd", "KRW");
-                obj.put("sdate", this.fromDate);
+                obj.put("sdate", this.bankSDate);
                 obj.put("edate", this.toDate);
                 break;
             case "IROS":    //확정일자
                 obj.put("orgCd", "iros");
                 obj.put("svcCd", "B2001");
                 obj.put("svcDivCd", "VIEW1");
+                obj.put("loginMethod", "CERT");
+                obj.put("userName", this.custNm);
+                obj.put("fdCls", "1");
+                obj.put("reqCls", "2");
+                if (this.isEstate) {
+                    obj.put("inqYn", "N");
+                    obj.put("payDiv", "0");
+                    obj.put("payNo", "B4768834-0460");
+                    obj.put("payPw", "0217");
+                    obj.put("hp1", "010");
+                    obj.put("hp2", "6796");
+                    obj.put("hp3", "8878");
+                    obj.put("hpLoginPw", "8878");
+                } else {
+                    obj.put("inqYn", "Y");
+                }
                 break;
             case "ONNARA":  //온나라 토지찾기
                 obj.put("orgCd", "onnara");
                 obj.put("svcCd", "B0001");
-                obj.put("juminNo", bizNo);
+                obj.put("userName", this.custNm);
+                obj.put("logLevel", "D");
                 break;
+            case "GOV":  //민원24 초본 열람
+                obj.put("orgCd", "gov");
+                obj.put("svcCd", "B0003");
+                //TODO 주소 가져오는 로직 webservice 에 만들어야 됨
+                //obj.put("sido", this.sido);
+                //obj.put("sigg", this.sigg);
+                obj.put("sido", "서울시");
+                obj.put("sigg", "마포구");
+                // 3자 발급 수신처 정보 (웰컴 회사 정보로 변경)
+                obj.put("recvNm","웰컴크레디라인대부");
+                obj.put("recvId","wel02");
+                obj.put("recvTel1","010");
+                obj.put("recvTel2", "6796");
+                obj.put("recvTel3","8878");
+                break;
+            case "INSURE":
+                obj.put("orgCd", "cont.insure");
+                obj.put("svcCd", "B0001");
+                obj.put("authType", "cert");
+                obj.put("userName", this.custNm);
+                obj.put("mobileNo", telNo);
+                break;
+            case "KRAS":
+                obj.put("orgCd", "kras");
+                obj.put("svcCd", "B0001");
+                obj.put("loginMethod", "CERT");
+                obj.put("userName", this.custNm);
+                obj.put("addrOption", "2");
+                obj.put("addr1", this.addr1);
+                obj.put("addr2", this.addr2);
+                obj.put("pub_type", "종합형");
+                obj.put("captcha_type", "auto");
+                break;
+            case "EFINE":
+                obj.put("orgCd", "efine");
+                obj.put("svcCd", "B0001,B0002,B1001,B1002");
+                obj.put("userName", this.custNm);
+                break;
+
         }
         return obj;
     }

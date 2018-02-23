@@ -47,6 +47,13 @@ public class ScrapRunnable implements Runnable {
     @Override
     public void run() {
         iftCoreEnV2 iftCore = new iftCoreEnV2(this.cabWebActivity, infoTecListener);
+        //FIXME for test
         this.strScrapResult = iftCore.startEngine(this.inputObj.toString());
+//        if (!this.scrapType.equals("KRAS")) {
+//            this.strScrapResult = iftCore.startEngine(this.inputObj.toString());
+//        } else {
+//            this.strScrapResult = "{\"errYn\":\"Y\"}";
+//        }
+
     }
 }
