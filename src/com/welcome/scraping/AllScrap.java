@@ -158,6 +158,7 @@ public class AllScrap {
     private String bizNo;       //복호화된 주번
     private String sido;        //시도
     private String sigg;        //시군구
+    private String roadNm;      //나머지 도로명 주소
     private String telNo;       //전화번호
     private String custNm;      //고객이름
     private String bankSDate;   //은행조회 시작일
@@ -196,15 +197,19 @@ public class AllScrap {
         final String nfilterCoworkKey = NFilter.COWORKER_CODE;
         String aesenc = nfilter.aesencDataForId("certificatePass");
         this.certPw = iftEncPw.iftEncPrarm(iftEncPw.nFilterPassword(aesenc, nfilterPublicKey, nfilterCoworkKey));
+        Log.i("scrap for iroTest", "for irostest certPW ::: " + iftEncPw.nFilterPassword(aesenc, nfilterPublicKey, nfilterCoworkKey));
 //        this.certPw = iftEncPw.nFilterPassword(aesenc, nfilterPublicKey, nfilterCoworkKey);
 
         this.certNm = Base64.encodeToString(getPaceUrlParam(decUrl, "certnm").getBytes(), Base64.DEFAULT);
+        Log.i("scrap for iroTest", "for irostest certPW ::: " + getPaceUrlParam(decUrl, "certnm"));
+
         this.fromDate = getPaceUrlParam(this.decUrl, "startdate");
         this.toDate = getPaceUrlParam(this.decUrl, "enddate");
         this.bankSDate = getPaceUrlParam(this.decUrl, "banksdate");
 
         this.sido = getPaceUrlParam(this.decUrl, "sido");
         this.sigg = getPaceUrlParam(this.decUrl, "sigg");
+        this.roadNm = getPaceUrlParam(this.decUrl, "roadNm");
 
         this.custNm = getPaceUrlParam(this.decUrl, "custnm");
 
@@ -309,11 +314,13 @@ public class AllScrap {
             case "GOV":  //민원24 초본 열람
                 obj.put("orgCd", "gov");
                 obj.put("svcCd", "B0003");
-                //TODO 주소 가져오는 로직 webservice 에 만들어야 됨
-                //obj.put("sido", this.sido);
-                //obj.put("sigg", this.sigg);
-                obj.put("sido", "서울시");
-                obj.put("sigg", "마포구");
+                obj.put("nonMemberYn", "Y"); // 비회원 로그인 연람 신청
+                obj.put("hpNo", this.telNo);
+                obj.put("userName", this.custNm);
+                obj.put("reqSMS_YN", "N");
+                obj.put("roadNm", this.roadNm);
+                obj.put("sido", this.sido);
+                obj.put("sigg", this.sigg);
                 // 3자 발급 수신처 정보 (웰컴 회사 정보로 변경)
                 obj.put("recvNm","웰컴크레디라인대부");
                 obj.put("recvId","wel02");
@@ -328,17 +335,18 @@ public class AllScrap {
                 obj.put("userName", this.custNm);
                 obj.put("mobileNo", telNo);
                 break;
-            case "KRAS":
-                obj.put("orgCd", "kras");
-                obj.put("svcCd", "B0001");
-                obj.put("loginMethod", "CERT");
-                obj.put("userName", this.custNm);
-                obj.put("addrOption", "2");
-                obj.put("addr1", this.addr1);
-                obj.put("addr2", this.addr2);
-                obj.put("pub_type", "종합형");
-                obj.put("captcha_type", "auto");
-                break;
+            //일사편리는 스크래핑 안하기로 함
+//            case "KRAS":
+//                obj.put("orgCd", "kras");
+//                obj.put("svcCd", "B0001");
+//                obj.put("loginMethod", "CERT");
+//                obj.put("userName", this.custNm);
+//                obj.put("addrOption", "2");
+//                obj.put("addr1", this.addr1);
+//                obj.put("addr2", this.addr2);
+//                obj.put("pub_type", "종합형");
+//                obj.put("captcha_type", "auto");
+//                break;
             case "EFINE":
                 obj.put("orgCd", "efine");
                 obj.put("svcCd", "B0001,B0002,B1001,B1002");
